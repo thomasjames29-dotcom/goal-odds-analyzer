@@ -49,7 +49,14 @@ test("fixture route rejects malformed dates and reports a missing secret", async
     env: {},
   });
   assert.equal(missingSecret.status, 502);
-  assert.match((await missingSecret.json()).error, /API_FOOTBALL_KEY/);
+  assert.match((await missingSecret.json()).error, /did not bind API_FOOTBALL_KEY/);
+
+  const emptySecret = await listFixtures({
+    request: new Request("https://example.test/api/fixtures?date=2026-01-01"),
+    env: { API_FOOTBALL_KEY: "" },
+  });
+  assert.equal(emptySecret.status, 502);
+  assert.match((await emptySecret.json()).error, /value is empty/);
 });
 
 test("analysis route rejects invalid scenarios before API calls", async () => {

@@ -48,8 +48,11 @@ export function fixtureSummary(match) {
 }
 
 export async function apiGet(path, params, env) {
-  if (!env.API_FOOTBALL_KEY) {
-    throw new ProviderError("API_FOOTBALL_KEY is not available to this Pages Function. Add it as a secret for this deployment's environment (Production or Preview), then redeploy.");
+  if (env.API_FOOTBALL_KEY === undefined || env.API_FOOTBALL_KEY === null) {
+    throw new ProviderError("Cloudflare did not bind API_FOOTBALL_KEY to this deployment.");
+  }
+  if (typeof env.API_FOOTBALL_KEY !== "string" || !env.API_FOOTBALL_KEY.trim()) {
+    throw new ProviderError("Cloudflare bound API_FOOTBALL_KEY, but its value is empty or not a text secret.");
   }
   const url = new URL(`${BASE_URL}${path}`);
   url.search = new URLSearchParams(params);
