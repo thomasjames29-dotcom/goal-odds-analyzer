@@ -17,10 +17,9 @@ Run the local-app tests with `python3 -m unittest discover -s tests` and the Clo
 
 ## Deploy on Cloudflare and install on a phone
 
-Create a Cloudflare Pages project connected to this repository. Leave the build command empty and set the build output directory to `static`; the Pages Functions under `functions/` provide the API routes. Add `API_FOOTBALL_KEY` as a secret in the Pages project's **Settings → Variables and Secrets** for the production environment, then deploy. If you are opening a preview deployment, add the secret to the preview environment too. Trigger a new deployment after changing a secret so the Functions receive it. Never commit the key or put it in a frontend variable.
+Create a Cloudflare Pages project connected to this repository. Leave the build command empty and set the build output directory to `static`; the Pages Functions under `functions/` provide the API routes. Add `API_FOOTBALL_KEY` as a secret in the Pages project's **Settings → Variables and Secrets** for the production environment, then deploy. If you are opening a preview deployment, add the secret to the preview environment too. Trigger a new deployment after changing a secret so the Functions receive it. Never commit the key or put it in a frontend variable. Use a Pages deployment, not a Workers deploy command such as `npx wrangler deploy`.
 
 The project is configured through the Pages dashboard rather than a Wrangler configuration file. Set the Pages Functions compatibility date in the dashboard if needed. If migrating an existing deployment from a Wrangler file, deploy after removing the file, check the dashboard settings and redeploy after any changes.
-
 Make sure the branch deployed by Cloudflare contains the `functions/` directory; local, uncommitted changes are not deployed from GitHub. To check the deployed API, open `/api/fixtures?date=invalid` on your site's address: it should return a JSON error, not an HTML page. If it returns HTML, check the deployed branch, Pages project root and Functions build logs. A Cloudflare Access sign-in page can also return HTML if your session has expired.
 
 The Pages URL is public by default. Although the API key remains server-side, anyone can call the endpoints and use your API quota; for personal use, protect the site with Cloudflare Access before sharing the URL.
