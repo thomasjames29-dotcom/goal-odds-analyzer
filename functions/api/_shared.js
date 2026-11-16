@@ -51,8 +51,11 @@ export async function apiGet(path, params, env) {
   if (env.API_FOOTBALL_KEY === undefined || env.API_FOOTBALL_KEY === null) {
     throw new ProviderError("Cloudflare did not bind API_FOOTBALL_KEY to this deployment.");
   }
-  if (typeof env.API_FOOTBALL_KEY !== "string" || !env.API_FOOTBALL_KEY.trim()) {
-    throw new ProviderError("Cloudflare bound API_FOOTBALL_KEY, but its value is empty or not a text secret.");
+  if (typeof env.API_FOOTBALL_KEY !== "string") {
+    throw new ProviderError("Cloudflare bound API_FOOTBALL_KEY, but it is not a text secret.");
+  }
+  if (!env.API_FOOTBALL_KEY.trim()) {
+    throw new ProviderError("Cloudflare bound API_FOOTBALL_KEY, but its value is empty.");
   }
   const url = new URL(`${BASE_URL}${path}`);
   url.search = new URLSearchParams(params);

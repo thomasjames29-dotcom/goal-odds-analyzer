@@ -57,6 +57,13 @@ test("fixture route rejects malformed dates and reports a missing secret", async
   });
   assert.equal(emptySecret.status, 502);
   assert.match((await emptySecret.json()).error, /value is empty/);
+
+  const nonTextSecret = await listFixtures({
+    request: new Request("https://example.test/api/fixtures?date=2026-01-01"),
+    env: { API_FOOTBALL_KEY: {} },
+  });
+  assert.equal(nonTextSecret.status, 502);
+  assert.match((await nonTextSecret.json()).error, /not a text secret/);
 });
 
 test("analysis route rejects invalid scenarios before API calls", async () => {
