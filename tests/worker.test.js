@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { analyze, eligibleMatches } from "../functions/model.js";
+import { apiGet } from "../functions/api/_shared.js";
 import { onRequestGet as listFixtures } from "../functions/api/fixtures.js";
 import { onRequestGet as analyzeFixture } from "../functions/api/analyze.js";
 
@@ -72,6 +73,96 @@ test("analysis route rejects invalid scenarios before API calls", async () => {
     env: {},
   });
   assert.equal(response.status, 400);
+});
+
+test("retries per-minute rate limits once without restarting earlier requests", async t => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const originalFetch = globalThis.fetch;
+  let requests = 0;
+  globalThis.fetch = async () => {
+    requests++;
+    return requests === 1
+      ? Response.json({ errors: { rateLimit: "Too many requests." }, response: [] })
+      : Response.json({ errors: [], response: ["fixture"] });
+  };
+  try {
+    const result = apiGet("/fixtures", {}, { API_FOOTBALL_KEY: "test-secret" });
+    await new Promise(setImmediate);
+    assert.equal(requests, 1);
+    t.mock.timers.tick(64999);
+    await new Promise(setImmediate);
+    assert.equal(requests, 1);
+    t.mock.timers.tick(1);
+    assert.deepEqual(await result, ["fixture"]);
+    assert.equal(requests, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("reports a persistent HTTP rate limit after one retry", async t => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const originalFetch = globalThis.fetch;
+  let requests = 0;
+  globalThis.fetch = async () => {
+    requests++;
+    return new Response(null, { status: 429 });
+  };
+  try {
+    const result = apiGet("/fixtures", {}, { API_FOOTBALL_KEY: "test-secret" });
+    const rejection = assert.rejects(result, /rate limit is still exceeded/);
+    await new Promise(setImmediate);
+    t.mock.timers.tick(65000);
+    await rejection;
+    assert.equal(requests, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("analysis continues across rate limits without repeating successful requests", async t => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const upcoming = match(99, 0, 0, "2099-01-01T12:00:00Z", "NS");
+  upcoming.teams = { home: { id: 1, name: "Home" }, away: { id: 2, name: "Away" } };
+  upcoming.league = { name: "League", country: "Country" };
+  const history = Array.from({ length: 20 }, (_, i) => match(i + 1));
+  const originalFetch = globalThis.fetch;
+  let requests = 0;
+  globalThis.fetch = async input => {
+    requests++;
+    if (requests === 11 || requests === 22) {
+      return Response.json({ errors: { rateLimit: "Too many requests." }, response: [] });
+    }
+    const url = new URL(input);
+    if (url.pathname === "/fixtures/events") {
+      return Response.json({ errors: [], response: [goal(10), goal(90)] });
+    }
+    if (url.searchParams.has("id")) {
+      return Response.json({ errors: [], response: [upcoming] });
+    }
+    return Response.json({
+      errors: [],
+      response: Number(url.searchParams.get("team")) === 1 ? history.slice(0, 10) : history.slice(10),
+    });
+  };
+  try {
+    const result = analyzeFixture({
+      request: new Request("https://example.test/api/analyze?id=99&minute=45&commission=5&margin=5"),
+      env: { API_FOOTBALL_KEY: "test-secret" },
+    });
+    await new Promise(setImmediate);
+    assert.equal(requests, 11);
+    t.mock.timers.tick(65000);
+    await new Promise(setImmediate);
+    assert.equal(requests, 22);
+    t.mock.timers.tick(65000);
+    const response = await result;
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).analysis.timing_sample, 20);
+    assert.equal(requests, 25);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("analysis route fetches and deduplicates prior match events", async () => {
