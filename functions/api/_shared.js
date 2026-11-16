@@ -49,7 +49,7 @@ export function fixtureSummary(match) {
 
 export async function apiGet(path, params, env) {
   if (!env.API_FOOTBALL_KEY) {
-    throw new ProviderError("Set API_FOOTBALL_KEY as a Cloudflare Pages secret.");
+    throw new ProviderError("API_FOOTBALL_KEY is not available to this Pages Function. Add it as a secret for this deployment's environment (Production or Preview), then redeploy.");
   }
   const url = new URL(`${BASE_URL}${path}`);
   url.search = new URLSearchParams(params);
