@@ -1,7 +1,6 @@
 import { AnalysisError } from "../model.js";
 
 const BASE_URL = "https://v3.football.api-sports.io";
-const RATE_LIMIT_WAIT_MS = 65000;
 
 export class HttpError extends Error {
   constructor(status, message) {
@@ -60,45 +59,37 @@ export async function apiGet(path, params, env) {
   }
   const url = new URL(`${BASE_URL}${path}`);
   url.search = new URLSearchParams(params);
-  for (let attempt = 0; attempt < 2; attempt++) {
-    let response;
-    try {
-      response = await fetch(url, {
-        headers: { "x-apisports-key": env.API_FOOTBALL_KEY },
-        signal: AbortSignal.timeout(20000),
-      });
-    } catch {
-      throw new ProviderError("Could not reach API-Football. Check your connection.");
-    }
-
-    let data;
-    if (response.status !== 429) {
-      if (!response.ok) throw new ProviderError(`API-Football returned HTTP ${response.status}.`);
-      try {
-        data = await response.json();
-      } catch {
-        throw new ProviderError("API-Football returned invalid JSON.");
-      }
-      if (!data || typeof data !== "object" || Array.isArray(data)) {
-        throw new ProviderError("API-Football returned an unexpected response.");
-      }
-      const errors = data.errors;
-      const rateLimited = errors && typeof errors === "object"
-        && Object.keys(errors).length === 1 && errors.rateLimit;
-      if (!rateLimited) {
-        if (errors && (typeof errors !== "object" || Object.keys(errors).length > 0)) {
-          throw new ProviderError(`API-Football error: ${JSON.stringify(errors)}`);
-        }
-        if (!Array.isArray(data.response)) {
-          throw new ProviderError("API-Football returned an unexpected response.");
-        }
-        return data.response;
-      }
-    }
-
-    if (attempt === 1) {
-      throw new ProviderError("API-Football's request rate limit is still exceeded. Wait a minute and try again.");
-    }
-    await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_WAIT_MS));
+  let response;
+  try {
+    response = await fetch(url, {
+      headers: { "x-apisports-key": env.API_FOOTBALL_KEY },
+      signal: AbortSignal.timeout(20000),
+    });
+  } catch {
+    throw new ProviderError("Could not reach API-Football. Check your connection.");
   }
+  if (response.status === 429) {
+    throw new ProviderError("API-Football reports a request rate limit. Wait a minute and try again.");
+  }
+  if (!response.ok) throw new ProviderError(`API-Football returned HTTP ${response.status}.`);
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    throw new ProviderError("API-Football returned invalid JSON.");
+  }
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    throw new ProviderError("API-Football returned an unexpected response.");
+  }
+  const errors = data.errors;
+  if (errors && typeof errors === "object" && Object.keys(errors).length === 1 && errors.rateLimit) {
+    throw new ProviderError("API-Football reports a request rate limit. Wait a minute and try again.");
+  }
+  if (errors && (typeof errors !== "object" || Object.keys(errors).length > 0)) {
+    throw new ProviderError(`API-Football error: ${JSON.stringify(errors)}`);
+  }
+  if (!Array.isArray(data.response)) {
+    throw new ProviderError("API-Football returned an unexpected response.");
+  }
+  return data.response;
 }

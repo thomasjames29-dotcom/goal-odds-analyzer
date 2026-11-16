@@ -28,7 +28,7 @@ document.querySelector("#fixtures-form").addEventListener("submit", async event 
   fixtureSelect.disabled = true;
   analyzeButton.disabled = true;
   results.hidden = true;
-  status.textContent = "Loading fixtures… API rate limits may cause a delay.";
+  status.textContent = "Loading fixtures…";
   fixtureSelect.replaceChildren(new Option("Select a fixture", ""));
   try {
     const fixtures = await getJSON(`/api/fixtures?${new URLSearchParams({date: dateInput.value})}`);
@@ -56,7 +56,7 @@ document.querySelector("#analysis-form").addEventListener("submit", async event 
   analyzeButton.disabled = true;
   fixtureSelect.disabled = true;
   results.hidden = true;
-  status.textContent = "Loading recent matches and goal events. API rate limits may make this take several minutes…";
+  status.textContent = "Loading recent matches and goal events. This may take a little while…";
   const params = new URLSearchParams({
     id: fixtureSelect.value,
     minute: document.querySelector("#minute").value,

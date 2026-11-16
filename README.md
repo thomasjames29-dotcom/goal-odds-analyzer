@@ -21,7 +21,7 @@ Create a Cloudflare Pages project connected to this repository. Leave the build 
 
 The project is configured through the Pages dashboard rather than a Wrangler configuration file. Set the Pages Functions compatibility date in the dashboard if needed. If migrating an existing deployment from a Wrangler file, deploy after removing the file, check the dashboard settings and redeploy after any changes.
 
-When API-Football reports a per-minute rate limit, the Pages backend waits 65 seconds and retries the affected request once. Analyses can therefore take several minutes on lower-rate plans; keep the page open. Concurrent users or other applications using the same API key can still exhaust the limit or daily quota.
+API-Football applies per-minute limits separately from its daily quota. An analysis can use up to 23 requests and may exceed the per-minute limit on lower-rate plans, particularly if other applications use the same key.
 Make sure the branch deployed by Cloudflare contains the `functions/` directory; local, uncommitted changes are not deployed from GitHub. To check the deployed API, open `/api/fixtures?date=invalid` on your site's address: it should return a JSON error, not an HTML page. If it returns HTML, check the deployed branch, Pages project root and Functions build logs. A Cloudflare Access sign-in page can also return HTML if your session has expired.
 
 The Pages URL is public by default. Although the API key remains server-side, anyone can call the endpoints and use your API quota; for personal use, protect the site with Cloudflare Access before sharing the URL.
