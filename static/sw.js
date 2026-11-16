@@ -1,5 +1,5 @@
-const CACHE_NAME = "goal-odds-shell-v1";
-const APP_SHELL = ["/", "/style.css", "/app.js", "/manifest.webmanifest", "/icon.svg"];
+const CACHE_NAME = "goal-odds-shell-v2";
+const APP_SHELL = ["/", "/style.css", "/app.js?v=2", "/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", event => {
   event.waitUntil(

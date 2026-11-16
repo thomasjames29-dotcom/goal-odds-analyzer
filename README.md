@@ -21,6 +21,8 @@ Create a Cloudflare Pages project connected to this repository. Leave the build 
 
 Make sure the branch deployed by Cloudflare contains the `functions/` directory; local, uncommitted changes are not deployed from GitHub. To check the deployed API, open `/api/fixtures?date=invalid` on your site's address: it should return a JSON error, not an HTML page. If it returns HTML, check the deployed branch, Pages project root and Functions build logs. A Cloudflare Access sign-in page can also return HTML if your session has expired.
 
+After redeploying frontend changes, reopen the installed app while online so its service worker can update. If it still shows old behavior, close and reopen it or remove and reinstall the home-screen app.
+
 The Pages URL is public by default. Although the API key remains server-side, anyone can call the endpoints and use your API quota; for personal use, protect the site with Cloudflare Access before sharing the URL.
 
 Open the deployed HTTPS address on your phone. On iPhone, use Safari's **Share → Add to Home Screen**; on Android, use Chrome's **Install app** or **Add to Home screen** menu item. The app shell is cached for launch, but fixture loading and analysis require an internet connection.
