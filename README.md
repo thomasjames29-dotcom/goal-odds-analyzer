@@ -17,7 +17,7 @@ Run the local-app tests with `python3 -m unittest discover -s tests` and the Clo
 
 ## Deploy on Cloudflare and install on a phone
 
-Create a Cloudflare Pages project connected to this repository. Leave the build command empty and set the build output directory to `static`; the Pages Functions under `functions/` provide the API routes. Add `API_FOOTBALL_KEY` as a secret in the Pages project's **Settings → Variables and Secrets** for the production environment, then deploy. Never commit the key or put it in a frontend variable.
+Create a Cloudflare Pages project connected to this repository. Leave the build command empty and set the build output directory to `static`; the Pages Functions under `functions/` provide the API routes. Add `API_FOOTBALL_KEY` as a secret in the Pages project's **Settings → Variables and Secrets** for the production environment, then deploy. Never commit the key or put it in a frontend variable. Pages configuration is managed in the dashboard; adding a Wrangler configuration file makes it the source of truth and can override dashboard settings.
 
 Make sure the branch deployed by Cloudflare contains the `functions/` directory; local, uncommitted changes are not deployed from GitHub. To check the deployed API, open `/api/fixtures?date=invalid` on your site's address: it should return a JSON error, not an HTML page. If it returns HTML, check the deployed branch, Pages project root and Functions build logs. A Cloudflare Access sign-in page can also return HTML if your session has expired.
 
