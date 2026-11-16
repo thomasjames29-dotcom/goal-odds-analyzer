@@ -7,7 +7,16 @@ dateInput.value = new Date().toISOString().slice(0, 10);
 
 async function getJSON(path) {
   const response = await fetch(path);
-  const data = await response.json();
+  if ((response.headers.get("content-type") || "").includes("text/html")) {
+    throw new Error("The server returned a web page instead of API data. Check that Cloudflare Pages Functions are deployed and sign in again if the site is protected.");
+  }
+  let data;
+  try {
+    data = await response.json();
+  } catch (error) {
+    if (!(error instanceof SyntaxError)) throw error;
+    throw new Error(`The server returned an invalid API response (${response.status}).`);
+  }
   if (!response.ok) throw new Error(data.error || `Request failed (${response.status}).`);
   return data;
 }
@@ -91,3 +100,11 @@ document.querySelector("#analysis-form").addEventListener("submit", async event 
     analyzeButton.disabled = !fixtureSelect.value;
   }
 });
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(error => {
+      console.error("Could not register the app's offline shell.", error);
+    });
+  });
+}

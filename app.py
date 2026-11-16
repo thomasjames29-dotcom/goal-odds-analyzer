@@ -3,7 +3,6 @@
 import json
 import os
 import re
-import sys
 from datetime import date, datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -103,10 +102,13 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         url = urlsplit(self.path)
-        if url.path in ("/", "/style.css", "/app.js"):
+        if url.path in ("/", "/style.css", "/app.js", "/manifest.webmanifest", "/sw.js", "/icon.svg"):
             files = {"/": ("index.html", "text/html"),
                      "/style.css": ("style.css", "text/css"),
-                     "/app.js": ("app.js", "text/javascript")}
+                     "/app.js": ("app.js", "text/javascript"),
+                     "/manifest.webmanifest": ("manifest.webmanifest", "application/manifest+json"),
+                     "/sw.js": ("sw.js", "text/javascript"),
+                     "/icon.svg": ("icon.svg", "image/svg+xml")}
             name, content_type = files[url.path]
             self.send_data(200, content_type + "; charset=utf-8", (ROOT / "static" / name).read_bytes())
             return
@@ -134,11 +136,9 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    if not os.environ.get("API_FOOTBALL_KEY"):
-        print("Set API_FOOTBALL_KEY before starting the app.", file=sys.stderr)
-        sys.exit(1)
-    server = ThreadingHTTPServer(("127.0.0.1", 8000), Handler)
-    print("Open http://127.0.0.1:8000", flush=True)
+    port = int(os.environ.get("PORT", "8000"))
+    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    print(f"Listening on port {port}", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
