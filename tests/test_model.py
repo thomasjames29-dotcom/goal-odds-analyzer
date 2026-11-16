@@ -111,6 +111,9 @@ class IntegrationTests(unittest.TestCase):
             url = f"http://127.0.0.1:{server.server_port}"
             with urlopen(url) as response:
                 self.assertIn(b"Goal Odds Analyzer", response.read())
+            for path in ("/manifest.webmanifest", "/sw.js", "/icon.svg"):
+                with urlopen(url + path) as response:
+                    self.assertEqual(response.status, 200)
             with patch.object(app, "api_get", side_effect=app.ProviderError("quota exceeded")):
                 with self.assertRaises(HTTPError) as raised:
                     urlopen(url + "/api/fixtures?date=2026-01-01")
