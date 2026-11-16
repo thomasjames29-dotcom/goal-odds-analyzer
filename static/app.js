@@ -56,7 +56,7 @@ document.querySelector("#analysis-form").addEventListener("submit", async event 
   analyzeButton.disabled = true;
   fixtureSelect.disabled = true;
   results.hidden = true;
-  status.textContent = "Loading recent matches and goal events. This may take a little while…";
+  status.textContent = "Loading recent matches and goal events. Requests are spaced out to avoid rate limits, so this may take 30 seconds or more…";
   const params = new URLSearchParams({
     id: fixtureSelect.value,
     minute: document.querySelector("#minute").value,

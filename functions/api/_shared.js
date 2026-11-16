@@ -47,6 +47,12 @@ export function fixtureSummary(match) {
   };
 }
 
+function rateLimitError(response) {
+  const limit = response.headers.get("x-ratelimit-limit");
+  const detail = limit && /^\d{1,6}$/.test(limit) ? ` The provider reports a limit of ${limit} requests per minute.` : "";
+  return new ProviderError(`API-Football reports a request rate limit.${detail} Wait a minute and try again.`);
+}
+
 export async function apiGet(path, params, env) {
   if (env.API_FOOTBALL_KEY === undefined || env.API_FOOTBALL_KEY === null) {
     throw new ProviderError("Cloudflare did not bind API_FOOTBALL_KEY to this deployment.");
@@ -69,7 +75,7 @@ export async function apiGet(path, params, env) {
     throw new ProviderError("Could not reach API-Football. Check your connection.");
   }
   if (response.status === 429) {
-    throw new ProviderError("API-Football reports a request rate limit. Wait a minute and try again.");
+    throw rateLimitError(response);
   }
   if (!response.ok) throw new ProviderError(`API-Football returned HTTP ${response.status}.`);
   let data;
@@ -83,7 +89,7 @@ export async function apiGet(path, params, env) {
   }
   const errors = data.errors;
   if (errors && typeof errors === "object" && Object.keys(errors).length === 1 && errors.rateLimit) {
-    throw new ProviderError("API-Football reports a request rate limit. Wait a minute and try again.");
+    throw rateLimitError(response);
   }
   if (errors && (typeof errors !== "object" || Object.keys(errors).length > 0)) {
     throw new ProviderError(`API-Football error: ${JSON.stringify(errors)}`);

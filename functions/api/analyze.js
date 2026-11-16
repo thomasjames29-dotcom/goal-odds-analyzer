@@ -27,7 +27,14 @@ export async function onRequestGet({ request, env }) {
     if (fixtureId <= 0) throw new HttpError(400, "Invalid fixture ID.");
     validateScenario(minute, commission, margin);
 
-    const fixtures = await apiGet("/fixtures", { id: fixtureId }, env);
+    let requested = false;
+    async function pacedGet(path, params) {
+      if (requested) await new Promise(resolve => setTimeout(resolve, 1000));
+      requested = true;
+      return apiGet(path, params, env);
+    }
+
+    const fixtures = await pacedGet("/fixtures", { id: fixtureId });
     if (fixtures.length !== 1) throw new HttpError(400, "Fixture not found.");
     const match = fixtures[0];
     const kickoff = parseDate(match.fixture.date);
@@ -37,10 +44,10 @@ export async function onRequestGet({ request, env }) {
 
     const histories = [];
     for (const side of ["home", "away"]) {
-      const raw = await apiGet("/fixtures", {
+      const raw = await pacedGet("/fixtures", {
         team: match.teams[side].id,
         last: 10,
-      }, env);
+      });
       histories.push(eligibleMatches(raw, kickoff));
     }
     if (histories.some(history => history.length < 3)) {
@@ -50,7 +57,7 @@ export async function onRequestGet({ request, env }) {
     const ids = new Set(histories.flatMap(history => history.map(item => item.fixture.id)));
     const eventsById = new Map();
     for (const id of ids) {
-      eventsById.set(id, await apiGet("/fixtures/events", { fixture: id }, env));
+      eventsById.set(id, await pacedGet("/fixtures/events", { fixture: id }));
     }
     const result = analyze(...histories, eventsById, minute, commission, margin);
     return jsonResponse(200, { fixture: fixtureSummary(match), analysis: result });

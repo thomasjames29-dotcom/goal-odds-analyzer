@@ -80,10 +80,12 @@ test("reports provider rate limits without waiting or retrying", async () => {
   let requests = 0;
   globalThis.fetch = async () => {
     requests++;
-    return Response.json({ errors: { rateLimit: "Too many requests." }, response: [] });
+    return Response.json({ errors: { rateLimit: "Too many requests." }, response: [] }, {
+      headers: { "x-ratelimit-limit": "10" },
+    });
   };
   try {
-    await assert.rejects(apiGet("/fixtures", {}, { API_FOOTBALL_KEY: "test-secret" }), /request rate limit/);
+    await assert.rejects(apiGet("/fixtures", {}, { API_FOOTBALL_KEY: "test-secret" }), /limit of 10 requests per minute/);
     assert.equal(requests, 1);
     globalThis.fetch = async () => new Response(null, { status: 429 });
     await assert.rejects(apiGet("/fixtures", {}, { API_FOOTBALL_KEY: "test-secret" }), /request rate limit/);
@@ -92,7 +94,8 @@ test("reports provider rate limits without waiting or retrying", async () => {
   }
 });
 
-test("analysis route fetches and deduplicates prior match events", async () => {
+test("analysis route spaces requests and deduplicates prior match events", async t => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
   const upcoming = match(99, 0, 0, "2099-01-01T12:00:00Z", "NS");
   upcoming.teams = { home: { id: 1, name: "Home" }, away: { id: 2, name: "Away" } };
   upcoming.league = { name: "League", country: "Country" };
@@ -114,10 +117,19 @@ test("analysis route fetches and deduplicates prior match events", async () => {
     });
   };
   try {
-    const response = await analyzeFixture({
+    const result = analyzeFixture({
       request: new Request("https://example.test/api/analyze?id=99&minute=45&commission=5&margin=5"),
       env: { API_FOOTBALL_KEY: "test-secret" },
     });
+    for (let i = 1; i < 9; i++) {
+      await new Promise(setImmediate);
+      assert.equal(requests.length, i);
+      t.mock.timers.tick(999);
+      await new Promise(setImmediate);
+      assert.equal(requests.length, i);
+      t.mock.timers.tick(1);
+    }
+    const response = await result;
     assert.equal(response.status, 200);
     const body = await response.json();
     assert.equal(body.fixture.home, "Home");
