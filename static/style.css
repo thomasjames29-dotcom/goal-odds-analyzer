@@ -1,0 +1,33 @@
+:root { color-scheme: light; font-family: system-ui, sans-serif; color: #182b36; background: #f3f6f5; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 1050px; margin: auto; padding: 48px 24px 80px; }
+header { margin-bottom: 28px; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); margin: 8px 0; letter-spacing: -.04em; }
+h2 { font-size: 1.25rem; margin: 0 0 20px; }
+h3 { margin-top: 30px; }
+p { line-height: 1.5; }
+.eyebrow { color: #087a68; font-size: .75rem; letter-spacing: .12em; font-weight: 800; }
+.notice { background: #fff8df; color: #675111; border: 1px solid #f0df9e; border-radius: 10px; padding: 14px 16px; }
+.panel { background: white; border: 1px solid #dfe8e5; border-radius: 14px; padding: 24px; margin-top: 20px; box-shadow: 0 3px 14px #143b2908; }
+label { display: block; font-size: .88rem; font-weight: 700; margin: 18px 0 8px; }
+label span, .help { color: #63777c; font-weight: 400; }
+input, select, button { font: inherit; border-radius: 8px; padding: 11px 12px; }
+input, select { border: 1px solid #bacbc7; background: white; color: inherit; width: 100%; }
+button { background: #087a68; color: white; border: 1px solid #087a68; font-weight: 700; cursor: pointer; white-space: nowrap; }
+button:hover { background: #065e51; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.row { display: flex; gap: 10px; max-width: 450px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.grid label { margin-top: 0; }
+.help { font-size: .85rem; }
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.metrics > div { background: #f1f8f6; padding: 16px; border-radius: 10px; }
+.metrics span, .metrics small { display: block; color: #55706e; font-size: .8rem; }
+.metrics strong { display: block; font-size: 1.7rem; margin: 8px 0; }
+.segment { display: grid; grid-template-columns: 90px 1fr 55px; gap: 12px; align-items: center; margin: 10px 0; font-size: .9rem; }
+.track { background: #e7f0ed; height: 10px; border-radius: 10px; overflow: hidden; }
+.bar { background: #159981; height: 100%; }
+#status { margin-top: 16px; color: #9b3b22; }
+@media (max-width: 650px) { main { padding: 28px 16px; } .grid, .metrics { grid-template-columns: repeat(2, 1fr); } .row { flex-wrap: wrap; } }
+@media (max-width: 400px) { .grid, .metrics { grid-template-columns: 1fr; } }

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Goal Odds Analyzer</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">FOOTBALL RESEARCH · OVER 0.5 GOALS</p>
+      <h1>Goal Odds Analyzer</h1>
+      <p>Explore first-goal timing and an illustrative price for a scoreless match.</p>
+    </header>
+    <aside class="notice"><strong>Research only.</strong> Estimates are unvalidated, not exchange prices or evidence of profit. The entry minute is a scenario, not a predicted fill time. No bets are placed.</aside>
+    <section class="panel">
+      <h2>1. Choose a fixture</h2>
+      <form id="fixtures-form">
+        <label for="date">Fixture date <span>UTC</span></label>
+        <div class="row"><input id="date" type="date" required><button type="submit">Find fixtures</button></div>
+      </form>
+      <label for="fixture">Upcoming fixture</label>
+      <select id="fixture" disabled><option>Find fixtures to get started</option></select>
+      <p class="help">Only fixtures that have not started are shown. Coverage depends on your API-Football plan.</p>
+    </section>
+    <section class="panel">
+      <h2>2. Set a scenario</h2>
+      <form id="analysis-form">
+        <div class="grid">
+          <div><label for="minute">Entry minute</label><input id="minute" type="number" min="0" max="75" step="1" value="45" required><p class="help">Assuming the score is still 0–0.</p></div>
+          <div><label for="commission">Commission (%)</label><input id="commission" type="number" min="0" max="10" step="0.1" value="5" required><p class="help">Applied to winning profit.</p></div>
+          <div><label for="margin">Price margin (%)</label><input id="margin" type="number" min="0" max="20" step="0.1" value="5" required><p class="help">An arbitrary markup, not an edge.</p></div>
+        </div>
+        <button id="analyze" type="submit" disabled>Analyze fixture</button>
+      </form>
+    </section>
+    <div id="status" role="status" aria-live="polite"></div>
+    <section id="results" class="panel" hidden>
+      <p class="eyebrow">ILLUSTRATIVE SCENARIO</p>
+      <h2 id="match-title"></h2>
+      <p id="match-meta" class="help"></p>
+      <div class="metrics">
+        <div><span>Indicative order price</span><strong id="price"></strong><small>Break-even price + chosen margin</small></div>
+        <div><span>Break-even price</span><strong id="fair"></strong><small>Including selected commission</small></div>
+        <div><span>Goal after entry</span><strong id="remaining"></strong><small>Conditional on 0–0 at entry</small></div>
+        <div><span>Scoreless at entry</span><strong id="scoreless"></strong><small>Model estimate</small></div>
+      </div>
+      <p class="notice">The price does not predict exchange odds, liquidity or fills. Round up to a valid exchange tick and check persistence, suspension and cancellation rules yourself.</p>
+      <h3>First-goal timing</h3>
+      <p class="help">Model probability of the first goal occurring in each segment, from kickoff. A full-time 0–0 is the remaining probability.</p>
+      <div id="segments"></div>
+      <p id="summary" class="help"></p>
+      <p class="help">Based on recent final scores and recorded goals, not xG or live information. See the README for assumptions and limitations.</p>
+    </section>
+  </main>
+</body>
+</html>
